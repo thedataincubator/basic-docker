@@ -22,7 +22,7 @@ The Dockerfile is the description for how an image is built, they are not exactl
 
 Every time a command is run, Docker effectively creates a container from the previous layers, runs the command inside the container and then commits the state.  Thus a Dockerfile is kind of like a master bash script running on a bare starting operating system.
 
-One nice thing about Docker is that it provides cacheing of the layers, so if only a later layer is altered, the previous layers don't need to be rebuilt.  We will see some examples of Dockerfiles in just a bit, but first we need to know how to tell Docker to actually do something with them.
+One nice thing about Docker is that it provides caching of the layers, so if only a later layer is altered, the previous layers don't need to be rebuilt.  We will see some examples of Dockerfiles in just a bit, but first we need to know how to tell Docker to actually do something with them.
 
 ## Docker client
 
@@ -38,7 +38,7 @@ Lets see a few different examples and walk through some tricky bits.
 ## Examples
 
 ### hello-world
-This is the most basic example.  This builds an image from a base of Ubuntu 18 and installs Python 3.  It then uses **RUN** to print something with Python as well as **CMD** to print out a similiar thing.  The difference is that the **RUN** command executes during the build process, whereas the **CMD** executes when the container is launched.  To build this container run from the `hello-world` directory
+This is the most basic example.  This builds an image from a base of Ubuntu 18 and installs Python 3.  It then uses **RUN** to print something with Python as well as **CMD** to print out a similar thing.  The difference is that the **RUN** command executes during the build process, whereas the **CMD** executes when the container is launched.  To build this container run from the `hello-world` directory
 
 `docker build -t hello-world .`
 
@@ -54,11 +54,11 @@ Once you run this once, try building it again.  Does it still give both outputs?
 ### hello-code
 This examples runs some code from a Python file.  Like before it builds an image starting with Ubuntu, but it has to install a few extra dependencies to get things to work with `opencv`.
 
-The build command is similiar to before
+The build command is similar to before
 
 `docker build -t pic .`
 
-But the run command is bit fancier.  This program needs access to the computers webcam which means we need to give the Docker container access to that device.  We can use the `--device` flag to mount this device onto the container and in some sense more generally the `-v` flag to mount any volume onto the container.  Docker containers do not add any state to the images when they are destroyed, so if we want to persist information we either need to put it somehwere else (push to S3 bucket, database, etc) or to mount a volume.  Here we will mount the video device as well as a directory so when we save the pictures they are also outside the container.  This command may need to be changed if you are not running Linux.
+But the run command is bit fancier.  This program needs access to the computers webcam which means we need to give the Docker container access to that device.  We can use the `--device` flag to mount this device onto the container and in some sense more generally the `-v` flag to mount any volume onto the container.  Docker containers do not add any state to the images when they are destroyed, so if we want to persist information we either need to put it somewhere else (push to S3 bucket, database, etc) or to mount a volume.  Here we will mount the video device as well as a directory so when we save the pictures they are also outside the container.  This command may need to be changed if you are not running Linux.
 
 `docker run -v $PWD/pics/:/pics/ --device /dev/video0 pic`
 
