@@ -38,7 +38,16 @@ Lets see a few different examples and walk through some tricky bits.
 ## Examples
 
 ## hello-world
-This is the most basic example.  This builds an image from a base of Ubuntu 18 and installs Python 3.  It then uses **RUN** to print something with Python as well as **CMD** to print out a similiar thing.  The difference is that the **RUN** command executes during the build process, whereas the **CMD** executes when the container is launched.  To build this container run from the `hello-world` directory `docker build -t hello-world .`.  The `-t` flag gives the container a tag and the `.` tells the engine to use the current directory as the Docker context.  Docker will only allow you to use files and resources from within the current context.  To run the container you can use `docker run -i hello-world`, the `-i` flag will allow you to see the output.
+This is the most basic example.  This builds an image from a base of Ubuntu 18 and installs Python 3.  It then uses **RUN** to print something with Python as well as **CMD** to print out a similiar thing.  The difference is that the **RUN** command executes during the build process, whereas the **CMD** executes when the container is launched.  To build this container run from the `hello-world` directory
+
+`docker build -t hello-world .`
+
+The `-t` flag gives the container a tag and the `.` tells the engine to use the current directory as the Docker context.  Docker will only allow you to use files and resources from within the current context.  To run the container you can use
+
+`docker run -i hello-world`
+
+The `-i` flag will allow you to see the output.
+
 ```dockerfile
 # pull from ubuntu18 base image
 FROM ubuntu:18.04
@@ -56,9 +65,22 @@ CMD ["python3", "-c", "print('hello world again')"]
 
 Once you run this once, try building it again.  Does it still give both outputs?
 ## hello-code
+This examples runs some code from a Python file.  Like before it builds an image starting with Ubuntu, but it has to install a few extra dependencies to get things to work with `opencv`.
+
+The build command is similiar to before
+
+`docker build -t pic .`
+
+But the run command is bit fancier.  This program needs access to the computers webcam which means we need to give the Docker container access to that device.  We can use the `--device` flag to mount this device onto the container and in some sense more generally the `-v` flag to mount any volume onto the container.  Docker containers do not add any state to the images when they are destroyed, so if we want to persist information we either need to put it somehwere else (push to S3 bucket, database, etc) or to mount a volume.  Here we will mount the video device as well as a directory so when we save the pictures they are also outside the container.  This command may need to be changed if you are not running Linux.
+
+`docker run -v $PWD/pics/:/pics/ --device /dev/video0 pic`
+
+Remember containers are running in the host operating system directly so mounting devices and such is not such a big deal.
 ```dockerfile
+# use base ubuntu 18
 FROM ubuntu:18.04
 
+# install some packages needed for example
 RUN apt-get update \
     && apt-get install -y python3-pip \
      libsm6 \
@@ -66,34 +88,60 @@ RUN apt-get update \
      libxrender1 \
      libfontconfig1
 
+# copy the requirements file into image
 COPY ./requirements.txt /tmp/requirements.txt
 
+# install requirements from file
 RUN pip3 install -qr /tmp/requirements.txt
 
+# add main program to /src/ directory
 COPY main.py /src/
 
+# set working directory to /src/
 WORKDIR /src/
 
+# invoke the main.py script upon container start
 CMD ["python3", "main.py"]
 
 ```
 ## hello-flask
+Lastly we have our first "real" example in some sense which is to deploy a little flask application in a Docker container.
+
+The build command is
+`docker build -t hello-flask .`
+
+and the run command is
+
+`docker run -it -p 5000:4444 -e PORT=4444 hello-flask`
+
+This run command introduces a few new concepts.  Notice in the Dockerfile there is a reference to `$PORT`, an environment variable.  The `-e` flag allow us to pass those environment variables into a container.  The `-p` flag is used to map ports from the localhost to ports on the container.  If you did not include this there would be no way to communicate with the container.  Once this is up and running try running the following commands (I'm using `wget` here, but you can use anything that can make `POST` requests.)
+
+`wget -qO- http://localhost:5000 --post-data ''`
+
+`wget -qO- http://localhost:5000 --post-data name=<my-name>`
 ```dockerfile
+# use apline base image
 FROM alpine:edge
 
+# install os dependencies
 RUN apk update && apk add --no-cache \
     python3 \
     py3-psycopg2 && \
     python3 -m ensurepip
 
+# copy over requirements
 ADD ./app/requirements.txt /tmp/requirements.txt
 
+# install requirements
 RUN pip3 install -qr /tmp/requirements.txt
 
+# copy application
 COPY ./app /opt/app/
 
+# set working directory
 WORKDIR /opt/app
 
+# launch server
 CMD gunicorn --bind 0.0.0.0:$PORT wsgi
 
 ```
