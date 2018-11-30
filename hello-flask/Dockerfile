@@ -8,7 +8,7 @@ RUN apk update && apk add --no-cache \
     python3 -m ensurepip
 
 # copy over requirements
-ADD ./app/requirements.txt /tmp/requirements.txt
+COPY ./app/requirements.txt /tmp/requirements.txt
 
 # install requirements
 RUN pip3 install -qr /tmp/requirements.txt
