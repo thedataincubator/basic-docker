@@ -37,7 +37,7 @@ Lets see a few different examples and walk through some tricky bits.
 
 ## Examples
 
-## hello-world
+### hello-world
 This is the most basic example.  This builds an image from a base of Ubuntu 18 and installs Python 3.  It then uses **RUN** to print something with Python as well as **CMD** to print out a similiar thing.  The difference is that the **RUN** command executes during the build process, whereas the **CMD** executes when the container is launched.  To build this container run from the `hello-world` directory
 
 `docker build -t hello-world .`
@@ -64,7 +64,7 @@ CMD ["python3", "-c", "print('hello world again')"]
 ```
 
 Once you run this once, try building it again.  Does it still give both outputs?
-## hello-code
+### hello-code
 This examples runs some code from a Python file.  Like before it builds an image starting with Ubuntu, but it has to install a few extra dependencies to get things to work with `opencv`.
 
 The build command is similiar to before
@@ -104,7 +104,7 @@ WORKDIR /src/
 CMD ["python3", "main.py"]
 
 ```
-## hello-flask
+### hello-flask
 Lastly we have our first "real" example in some sense which is to deploy a little flask application in a Docker container.
 
 The build command is
