@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  hello-code:
+    container_name: hello-code
+    build:
+      context: ./hello-code
+    devices:
+      - "/dev/video0:/dev/video0"
+    volumes:
+      - $PWD/pics/:/pics/
+
+  hello-world:
+    container_name: hello-world
+    build:
+      context: ./hello-world
+
+  hello-flask:
+    container_name: hello-flask
+    build:
+      context: ./hello-flask
+    environment:
+      - PORT=8080
+    ports:
+      - "5000:8080"
+
